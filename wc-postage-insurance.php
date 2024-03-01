@@ -37,7 +37,7 @@ function wpi_load_script() {
 	wp_enqueue_script(
 		'wpi-postage-insurance',
 		plugins_url( 'assets/js/postage-insurance.js', __FILE__ ),
-		array( 'jquery' ),
+		array( 'jquery', 'wc-checkout', 'wc-cart' ),
 		false,
 		true
 	);
@@ -53,6 +53,29 @@ function wpi_load_script() {
 add_action( 'wp_enqueue_scripts', 'wpi_load_script' );
 
 
+// Function to handle AJAX request to update cart totals
+function update_cart_totals_callback() {
+	// Get checkbox state
+	$postage_insurance = isset( $_POST['postage_insurance'] ) ? sanitize_text_field( $_POST['postage_insurance'] ) : '';
+
+	// Calculate fee if checkbox is checked
+	if ( $postage_insurance === 'yes' ) {
+		// Calculate your fee here, for example:
+		$fee = 0.01 * WC()->cart->cart_contents_total;
+		// Add fee to the cart
+		WC()->cart->add_fee( 'Postage Insurance', $fee, true, '' );
+	}
+
+	// Return success message
+	echo 'success';
+
+	// Always use die() at the end of ajax functions to avoid issues
+	die();
+}
+add_action( 'wp_ajax_update_cart_totals', 'update_cart_totals_callback' );
+add_action( 'wp_ajax_nopriv_update_cart_totals', 'update_cart_totals_callback' );
+
+
 function woocommerce_custom_surcharge() {
 	global $woocommerce;
 
@@ -63,7 +86,6 @@ function woocommerce_custom_surcharge() {
 	$percentage = 0.01;
 	$surcharge  = ( $woocommerce->cart->cart_contents_total + $woocommerce->cart->shipping_total ) * $percentage;
 	$woocommerce->cart->add_fee( 'Postage Insurance', $surcharge, true, '' );
-
 }
 // add_action( 'woocommerce_cart_calculate_fees', 'woocommerce_custom_surcharge' );
 
@@ -83,7 +105,6 @@ function save_postage_insurance_checkbox( $order_id ) {
 		update_post_meta( $order_id, 'postage_insurance', 'yes' );
 	}
 }
-
 add_action( 'woocommerce_checkout_update_order_meta', 'save_postage_insurance_checkbox' );
 
 function display_postage_insurance_order_meta( $order ) {
