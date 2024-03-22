@@ -34,7 +34,7 @@ jQuery(document).ready(function ($) {
 	function refreshCartTotals() {
 		$.ajax({
 			type: "POST",
-			url: wc_cart_params.ajax_url,
+			url: wc_cart_fragments_params.ajax_url,
 			data: {
 				action: "update_cart_totals",
 				postage_insurance: $("#postage_insurance").is(":checked")
@@ -48,4 +48,26 @@ jQuery(document).ready(function ($) {
 			},
 		});
 	}
+});
+
+jQuery(document).ready(function ($) {
+	// Function to handle checkbox change event
+	$("#postage_insurance").change(function () {
+		// Get checkbox state
+		var isChecked = $(this).is(":checked");
+
+		// Get current URL
+		var currentUrl = window.location.href;
+
+		// Check if URL already has parameters
+		var separator = currentUrl.indexOf("?") !== -1 ? "&" : "?";
+
+		// Add or remove URL parameter based on checkbox state
+		var updatedUrl = isChecked
+			? currentUrl + separator + "postage_insurance=yes"
+			: currentUrl.replace(/[\?&]postage_insurance=yes/, "").replace(/&$/, "");
+
+		// Reload the page with the updated URL
+		window.location.href = updatedUrl;
+	});
 });

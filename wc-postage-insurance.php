@@ -58,12 +58,9 @@ function update_cart_totals_callback() {
 	// Get checkbox state
 	$postage_insurance = isset( $_POST['postage_insurance'] ) ? sanitize_text_field( $_POST['postage_insurance'] ) : '';
 
-	// Calculate fee if checkbox is checked
-	if ( $postage_insurance === 'yes' ) {
-		// Calculate your fee here, for example:
-		$fee = 0.01 * WC()->cart->cart_contents_total;
-		// Add fee to the cart
-		WC()->cart->add_fee( 'Postage Insurance', $fee, true, '' );
+	// Update session if postage_insurance  is checked or unchecked
+	if ( $postage_insurance ) {
+		WC()->session->set( 'postage_insurance', $postage_insurance );
 	}
 
 	// Return success message
@@ -76,29 +73,21 @@ add_action( 'wp_ajax_update_cart_totals', 'update_cart_totals_callback' );
 add_action( 'wp_ajax_nopriv_update_cart_totals', 'update_cart_totals_callback' );
 
 
-function woocommerce_custom_surcharge() {
+function woocommerce_custom_surcharge( $cart ) {
 	global $woocommerce;
 
 	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
 		return;
 	}
 
-	$percentage = 0.01;
-	$surcharge  = ( $woocommerce->cart->cart_contents_total + $woocommerce->cart->shipping_total ) * $percentage;
-	$woocommerce->cart->add_fee( 'Postage Insurance', $surcharge, true, '' );
-}
-// add_action( 'woocommerce_cart_calculate_fees', 'woocommerce_custom_surcharge' );
+	$insurance = WC()->session->get( 'postage_insurance' );
 
-
-function calculate_postage_insurance_cost( $cart ) {
-	if ( isset( $_POST['postage_insurance'] ) && $_POST['postage_insurance'] === '1' ) {
-		$cart_total     = $cart->get_cart_contents_total();
-		$insurance_cost = $cart_total * 0.03; // 3% of the cart total
-		WC()->cart->add_fee( 'Postage Insurance', $insurance_cost );
+	if ( $insurance ) {
+		$surcharge = 10;
+		$cart->add_fee( 'Postage Insurance', $surcharge, true, '' );
 	}
 }
-// add_action( 'woocommerce_cart_calculate_fees', 'calculate_postage_insurance_cost' );
-
+add_action( 'woocommerce_cart_calculate_fees', 'woocommerce_custom_surcharge' );
 
 function save_postage_insurance_checkbox( $order_id ) {
 	if ( isset( $_POST['postage_insurance'] ) ) {
