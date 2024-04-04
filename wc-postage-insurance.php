@@ -78,8 +78,8 @@ function update_cart_totals_callback() {
 	// Update session true or false.
 	WC()->session->set( 'postage_insurance', $postage_insurance );
 
-	// Return success message.
-	echo 'success';
+	// Return new cart html.
+	echo json_encode( wc_get_template_html( 'cart/cart-totals.php' ) );
 
 	// Always use die() at the end of ajax functions to avoid issues.
 	die();
