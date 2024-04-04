@@ -2,7 +2,8 @@
 	// Function to update the cart totals
 	function updateCartTotals() {
 		// Check the state of the custom checkbox
-		var isPostageInsurance = $("#postage_insurance").is(":checked");
+		var isPostageInsurance =
+			document.querySelector("#postage_insurance").checked;
 
 		// Make an AJAX request to update the cart totals
 		$.ajax({
@@ -10,64 +11,16 @@
 			url: wc_cart_fragments_params.ajax_url,
 			data: {
 				action: "update_cart_totals",
+				postage_nonce: wc_cart_fragments_params.nonce,
 				postage_insurance: isPostageInsurance,
 			},
-			success: function (response) {
-				// Refresh the cart fragment to update totals on the page
-				$(document.body).trigger("wc_fragment_refresh");
+			complete: function (response) {
+				// Refresh page.
+				window.location.reload();
 			},
 		});
 	}
 
 	// Attach the updateCartTotals function to the change event of the custom checkbox
-	// $("#postage_insurance").on("change", updateCartTotals);
+	$("#postage_insurance").on("change", updateCartTotals);
 })(jQuery);
-
-jQuery(document).ready(function ($) {
-	// Function to handle checkbox change event
-	$("#postage_insurance").change(function () {
-		// Trigger AJAX call to update cart totals
-		refreshCartTotals();
-	});
-
-	// Function to refresh cart totals via AJAX
-	function refreshCartTotals() {
-		$.ajax({
-			type: "POST",
-			url: wc_cart_fragments_params.ajax_url,
-			data: {
-				action: "update_cart_totals",
-				postage_insurance: $("#postage_insurance").is(":checked")
-					? "yes"
-					: "no", // Pass checkbox state
-			},
-			success: function (response) {
-				// Reload the page or update specific elements on the page containing cart totals
-				// For example, you can update the cart totals displayed on the page
-				$(".cart_totals").load(location.href + " .cart_totals");
-			},
-		});
-	}
-});
-
-jQuery(document).ready(function ($) {
-	// Function to handle checkbox change event
-	$("#postage_insurance").change(function () {
-		// Get checkbox state
-		var isChecked = $(this).is(":checked");
-
-		// Get current URL
-		var currentUrl = window.location.href;
-
-		// Check if URL already has parameters
-		var separator = currentUrl.indexOf("?") !== -1 ? "&" : "?";
-
-		// Add or remove URL parameter based on checkbox state
-		var updatedUrl = isChecked
-			? currentUrl + separator + "postage_insurance=yes"
-			: currentUrl.replace(/[\?&]postage_insurance=yes/, "").replace(/&$/, "");
-
-		// Reload the page with the updated URL
-		window.location.href = updatedUrl;
-	});
-});
