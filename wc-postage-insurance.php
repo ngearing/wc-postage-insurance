@@ -12,6 +12,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 
+if ( is_admin() ) {
+	add_filter(
+		'woocommerce_get_settings_pages',
+		function ( $settings ) {
+			$settings[] = include plugin_dir_path( __FILE__ ) . '/inc/class-wc-settings-postage-insurance.php';
+			return $settings;
+		}
+	);
+}
 
 // Display postage insurance checkbox.
 function wcpi_display_postage_insurance_field() {
