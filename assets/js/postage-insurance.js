@@ -85,10 +85,13 @@
 	}
 
 	function setupEventListeners() {
-		// Cart page event listener.
-		$("#postage_insurance").on("change", updateCartTotals);
-		// Checkout page event listener.
-		$("form.checkout").on("change", "#postage_insurance", updateCartTotals);
+		if (isCheckout()) {
+			// Checkout page event listener.
+			$("form.checkout").on("change", "#postage_insurance", updateCartTotals);
+		} else {
+			// Cart page event listener.
+			$("#postage_insurance").on("change", updateCartTotals);
+		}
 	}
 	setupEventListeners();
 })(jQuery);
