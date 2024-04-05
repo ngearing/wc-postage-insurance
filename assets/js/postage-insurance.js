@@ -35,11 +35,20 @@
 		$node.removeClass("processing").unblock();
 	};
 
-	var update_cart_totals_div = function (html_str) {
+	var isCheckout = function () {
+		var form = document.querySelector("form.checkout");
+		if (form) {
+			return true;
+		}
+
+		return false;
+	};
+
+	var update_cart_totals_div = function (html_str, target) {
 		var $html = $.parseHTML(html_str);
 
-		$(".cart_totals").replaceWith($html);
-		$(document.body).trigger("updated_cart_totals");
+		$(target).replaceWith($html);
+		$(document.body).trigger("updated_totals");
 	};
 
 	// Function to update the cart totals
@@ -47,37 +56,39 @@
 		// Check the state of the custom checkbox
 		var isPostageInsurance =
 			document.querySelector("#postage_insurance").checked;
+		var updateTarget = isCheckout() ? "table.shop_table" : "div.cart_totals";
 
-		block($("div.cart_totals"));
+		block($(updateTarget));
 
-		// Make an AJAX request to update the cart totals
+		// Make an AJAX request to update totals.
 		$.ajax({
 			type: "POST",
 			url: wc_cart_fragments_params.ajax_url,
 			data: {
-				action: "update_cart_totals",
+				action: "update_postage_insurance",
+				checkout: isCheckout() ? true : null,
 				postage_nonce: wc_cart_fragments_params.nonce,
 				postage_insurance: isPostageInsurance,
 			},
 			success: function (response) {
-				// response = JSON.parse(response);
-				update_cart_totals_div(response);
+				update_cart_totals_div(response, updateTarget);
 				setupEventListeners();
 			},
 			complete: function () {
-				unblock($("div.cart_totals"));
+				unblock($(updateTarget));
 			},
 			error: function (resp) {
 				console.log("Error: " + resp);
-				unblock($("div.cart_totals"));
+				unblock($(updateTarget));
 			},
 		});
 	}
 
 	function setupEventListeners() {
-		// Attach the updateCartTotals function to the change event of the custom checkbox
+		// Cart page event listener.
 		$("#postage_insurance").on("change", updateCartTotals);
+		// Checkout page event listener.
+		$("form.checkout").on("change", "#postage_insurance", updateCartTotals);
 	}
-
 	setupEventListeners();
 })(jQuery);
