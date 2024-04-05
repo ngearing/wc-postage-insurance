@@ -23,7 +23,7 @@ function wpi_display_postage_insurance_input() {
 			<label for="postage_insurance">Add Postage Insurance?</label>
 		</th>
 		<td data-title="Postage Insurance">
-			<input type="checkbox" name="postage_insurance" id="postage_insurance" value="1" <?php checked( WC()->session->get( 'postage_insurance' ) ); ?>>
+			<input type="checkbox" name="postage_insurance" id="postage_insurance" value="1" <?php checked( $insurance ); ?> />
 			<small>(+1% of Cart Total)</small>
 		</td>
 	</tr>
@@ -78,19 +78,17 @@ function update_cart_totals_callback() {
 	// Update session true or false.
 	WC()->session->set( 'postage_insurance', $postage_insurance );
 
-	// Return new cart html.
-	echo json_encode( wc_get_template_html( 'cart/cart-totals.php' ) );
-
-	// Always use die() at the end of ajax functions to avoid issues.
-	die();
+	// Recalcualte cart and output new cart totals.
+	wc_maybe_define_constant( 'WOOCOMMERCE_CART', true );
+	WC()->cart->calculate_totals();
+	woocommerce_cart_totals();
+	wp_die();
 }
 add_action( 'wp_ajax_update_cart_totals', 'update_cart_totals_callback' );
 add_action( 'wp_ajax_nopriv_update_cart_totals', 'update_cart_totals_callback' );
 
 
 function woocommerce_custom_surcharge( $cart ) {
-	global $woocommerce;
-
 	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
 		return;
 	}
@@ -106,7 +104,7 @@ add_action( 'woocommerce_cart_calculate_fees', 'woocommerce_custom_surcharge' );
 
 function save_postage_insurance_checkbox( $order_id ) {
 	if ( isset( $_POST['postage_insurance'] ) ) {
-		update_post_meta( $order_id, 'postage_insurance', 'yes' );
+		update_post_meta( $order_id, 'postage_insurance', true );
 	}
 }
 add_action( 'woocommerce_checkout_update_order_meta', 'save_postage_insurance_checkbox' );
@@ -121,5 +119,4 @@ function display_postage_insurance_order_meta( $order ) {
 		echo '<p><strong>Postage Insurance:</strong> No</p>';
 	}
 }
-
 add_action( 'woocommerce_admin_order_data_after_billing_address', 'display_postage_insurance_order_meta', 10, 1 );

@@ -38,10 +38,7 @@
 	var update_cart_totals_div = function (html_str) {
 		var $html = $.parseHTML(html_str);
 
-		// TODO: fix this not working...
-		var $new_totals = $(".cart_totals", $html);
-
-		$(".cart_totals").replaceWith($new_totals);
+		$(".cart_totals").replaceWith($html);
 		$(document.body).trigger("updated_cart_totals");
 	};
 
@@ -51,7 +48,7 @@
 		var isPostageInsurance =
 			document.querySelector("#postage_insurance").checked;
 
-		block($("div.cart_totals "));
+		block($("div.cart_totals"));
 
 		// Make an AJAX request to update the cart totals
 		$.ajax({
@@ -63,8 +60,9 @@
 				postage_insurance: isPostageInsurance,
 			},
 			success: function (response) {
-				response = JSON.parse(response);
+				// response = JSON.parse(response);
 				update_cart_totals_div(response);
+				setupEventListeners();
 			},
 			complete: function () {
 				unblock($("div.cart_totals"));
@@ -76,6 +74,10 @@
 		});
 	}
 
-	// Attach the updateCartTotals function to the change event of the custom checkbox
-	$("#postage_insurance").on("change", updateCartTotals);
+	function setupEventListeners() {
+		// Attach the updateCartTotals function to the change event of the custom checkbox
+		$("#postage_insurance").on("change", updateCartTotals);
+	}
+
+	setupEventListeners();
 })(jQuery);
