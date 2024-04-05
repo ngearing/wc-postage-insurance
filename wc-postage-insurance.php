@@ -20,6 +20,29 @@ if ( is_admin() ) {
 			return $settings;
 		}
 	);
+
+	function wcpi_settings_link( $links ) {
+		// Build and escape the URL.
+		// URL should point to /admin.php?page=wc-settings&tab=wcpi.
+		$url = esc_url(
+			add_query_arg(
+				array(
+					'page' => 'wc-settings',
+					'tab'  => 'wcpi',
+				),
+				get_admin_url() . 'admin.php'
+			)
+		);
+		// Create the link.
+		$settings_link = "<a href='$url'>" . __( 'Settings' ) . '</a>';
+		// Adds the link to the end of the array.
+		array_push(
+			$links,
+			$settings_link
+		);
+		return $links;
+	}
+	add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'wcpi_settings_link' );
 }
 
 // Display postage insurance checkbox.
