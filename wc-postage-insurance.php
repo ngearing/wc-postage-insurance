@@ -50,6 +50,7 @@ function wcpi_display_postage_insurance_field() {
 	wp_enqueue_script( 'wpi-postage-insurance' );
 
 	$insurance = WC()->session->get( 'postage_insurance' );
+	$fee       = get_option( 'wcpi_fee', 10 );
 
 	?>
 	<tr class="cart-postage-insurance">
@@ -58,7 +59,8 @@ function wcpi_display_postage_insurance_field() {
 		</th>
 		<td data-title="Postage Insurance">
 			<input type="checkbox" name="postage_insurance" id="postage_insurance" value="1" <?php checked( $insurance ); ?> />
-			<small>(+1% of Cart Total)</small>
+			<small><?php printf( '(+$%s)', wc_format_decimal( $fee ) ); ?>
+			</small>
 		</td>
 	</tr>
 	<?php
@@ -145,16 +147,12 @@ function wcpi_add_fees( $cart ) {
 
 	if ( $insurance ) {
 		// Get fee amount from options.
-		$fee       = get_option( 'woocommerce_postage_insurance_cost', 10 );
-		$taxable   = get_option( 'woocommerce_postage_insurance_taxable', false );
-		$tax_class = get_option( 'woocommerce_postage_insurance_tax_class', '' );
+		$fee       = get_option( 'wcpi_enabled', 10 );
+		$fee       = get_option( 'wcpi_fee', 10 );
+		$taxable   = get_option( 'wcpi_taxable', false );
+		$tax_class = get_option( 'wcpi_tax_class', '' );
 
-		// If no cost set, return -1 so it can be hidden.
-		if ( empty( $fee ) || ! is_numeric( $fee ) ) {
-			$amount = '-1';
-		} else {
-			$amount = wc_format_decimal( $fee );
-		}
+		$amount = wc_format_decimal( $fee );
 
 		// Add custom fee.
 		$cart->add_fee( __( 'Postage Insurance', 'wcpi' ), $amount, $taxable, $tax_class );
