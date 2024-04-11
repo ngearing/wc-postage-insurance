@@ -69,7 +69,7 @@ function wcpi_display_postage_insurance_field() {
 		</th>
 		<td data-title="Postage Insurance">
 			<input type="checkbox" name="postage_insurance" id="postage_insurance" value="1" <?php checked( $insurance ); ?> />
-			<small><?php printf( '(+%s)', esc_html( wc_price( $fee ) ) ); ?>
+			<small><?php printf( '(+%s)', wp_kses( wc_price( $fee ), 'post' ) ); ?>
 			</small>
 		</td>
 	</tr>
@@ -207,7 +207,7 @@ function wcpi_display_postage_insurance_order_meta( $order ) {
 		$fees = $order->get_fees();
 		foreach ( $fees as $fee ) {
 			if ( strpos( $fee->get_name(), 'Postage Insurance' ) !== false && $fee->get_total() != 0 ) {
-				echo '<p><strong>Postage Insurance Cost:</strong> ' . esc_html( wc_price( $fee->get_total() ) ) . '</p>';
+				echo '<p><strong>Postage Insurance Cost:</strong> ' . wp_kses( wc_price( $fee->get_total() ), 'post' ) . '</p>';
 			}
 		}
 	} else {
