@@ -21,6 +21,12 @@ if ( is_admin() ) {
 		}
 	);
 
+	/**
+	 * Create a plugins page link to go to plugin settings.
+	 *
+	 * @param array $links Array of links.
+	 * @return array
+	 */
 	function wcpi_settings_link( $links ) {
 		// Build and escape the URL.
 		// URL should point to /admin.php?page=wc-settings&tab=wcpi.
@@ -45,7 +51,11 @@ if ( is_admin() ) {
 	add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'wcpi_settings_link' );
 }
 
-// Display postage insurance checkbox.
+/**
+ * Display postage insurance checkbox.
+ *
+ * @return void
+ */
 function wcpi_display_postage_insurance_field() {
 	wp_enqueue_script( 'wpi-postage-insurance' );
 
@@ -59,7 +69,7 @@ function wcpi_display_postage_insurance_field() {
 		</th>
 		<td data-title="Postage Insurance">
 			<input type="checkbox" name="postage_insurance" id="postage_insurance" value="1" <?php checked( $insurance ); ?> />
-			<small><?php printf( '(+$%s)', wc_format_decimal( $fee ) ); ?>
+			<small><?php printf( '(+%s)', esc_html( wc_price( $fee ) ) ); ?>
 			</small>
 		</td>
 	</tr>
@@ -69,7 +79,11 @@ add_action( 'woocommerce_cart_totals_after_shipping', 'wcpi_display_postage_insu
 add_action( 'woocommerce_review_order_after_shipping', 'wcpi_display_postage_insurance_field' );
 
 
-// Load script to update totals for checkbox.
+/**
+ * Register plugin scripts.
+ *
+ * @return void
+ */
 function wcpi_load_script() {
 	wp_register_script(
 		'wpi-postage-insurance',
@@ -91,13 +105,17 @@ function wcpi_load_script() {
 add_action( 'wp_enqueue_scripts', 'wcpi_load_script' );
 
 
-// Function to handle AJAX request to update cart totals.
+/**
+ * AJAX function to set  the postage insurance value in session and return updated cart/checkout totals.
+ *
+ * @return void
+ */
 function wcpi_update_postage_insurance() {
 	// Get checkbox state.
-	if ( ! empty(
+	if ( isset(
 		$_POST['postage_nonce']
-	) && ! wp_verify_nonce( $_POST['postage_nonce'], 'postage_insurance' ) ) {
-		echo json_encode(
+	) && ! wp_verify_nonce( sanitize_key( $_POST['postage_nonce'] ), 'postage_insurance' ) ) {
+		echo wp_json_encode(
 			array(
 				'error'   => true,
 				'message' => 'nonce error',
@@ -108,7 +126,7 @@ function wcpi_update_postage_insurance() {
 
 	$postage_insurance = false;
 	if ( isset( $_POST['postage_insurance'] ) ) {
-		$postage_insurance = json_decode( $_POST['postage_insurance'] );
+		$postage_insurance = json_decode( sanitize_key( $_POST['postage_insurance'] ) );
 	}
 
 	// Update session true or false.
@@ -160,8 +178,14 @@ function wcpi_add_fees( $cart ) {
 }
 add_action( 'woocommerce_cart_calculate_fees', 'wcpi_add_fees' );
 
+/**
+ * Save Postage Insurance to order.
+ *
+ * @param int $order_id Order ID.
+ * @return void
+ */
 function wcpi_save_postage_insurance_checkbox( $order_id ) {
-	if ( isset( $_POST['postage_insurance'] ) ) {
+	if ( isset( $_POST['postage_insurance'] ) ) {  // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		update_post_meta( $order_id, 'postage_insurance', true );
 	}
 }
@@ -183,7 +207,7 @@ function wcpi_display_postage_insurance_order_meta( $order ) {
 		$fees = $order->get_fees();
 		foreach ( $fees as $fee ) {
 			if ( strpos( $fee->get_name(), 'Postage Insurance' ) !== false && $fee->get_total() != 0 ) {
-				echo '<p><strong>Postage Insurance Cost:</strong> ' . wc_price( $fee->get_total() ) . '</p>';
+				echo '<p><strong>Postage Insurance Cost:</strong> ' . esc_html( wc_price( $fee->get_total() ) ) . '</p>';
 			}
 		}
 	} else {
