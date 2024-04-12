@@ -61,11 +61,18 @@ function wcpi_display_postage_insurance_field() {
 
 	$insurance = WC()->session->get( 'postage_insurance' );
 	$fee       = get_option( 'wcpi_fee', 10 );
+	$desc      = get_option( 'wcpi_desc', 'Covers loss or damage of items up to the value of $500' );
 
 	?>
 	<tr class="cart-postage-insurance">
 		<th>
-			<label for="postage_insurance">Add Postage Insurance?</label>
+			<label for="postage_insurance">Add Postage Insurance?
+				<?php
+				if ( $desc ) {
+					printf( ' <span class="description" style="display:block;font-size:70%%;font-weight:300;">%s</span>', esc_html( $desc ) );
+				}
+				?>
+			</label>
 		</th>
 		<td data-title="Postage Insurance">
 			<input type="checkbox" name="postage_insurance" id="postage_insurance" value="1" <?php checked( $insurance ); ?> />
