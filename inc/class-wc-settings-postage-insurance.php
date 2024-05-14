@@ -25,15 +25,37 @@ class WC_Settings_Postage_Insurance extends WC_Settings_Page {
 			array(
 				'type'    => 'checkbox',
 				'id'      => 'wcpi_enabled',
-				'default' => '',
+				'default' => 'no',
 				'title'   => __( 'Enabled?', 'wcpi' ),
 				'desc'    => __( 'Add postage insurance option to cart/checkout pages.', 'wcpi' ),
+			),
+			array(
+				'title'    => __( 'Where to display?', 'wcpi' ),
+				'id'       => 'wcpi_display',
+				'default'  => 'no',
+				'type'     => 'radio',
+				'desc_tip' => false,
+				'options'  => array(
+					'no'  => __( 'Display in the checkout shipping options.', 'wcpi' ),
+					'yes' => __( 'Display in the shipping costs sections.', 'wcpi' ),
+				),
+			),
+			array(
+				'title'    => __( 'Fee type', 'wcpi' ),
+				'id'       => 'wcpi_fee_type',
+				'default'  => 'flat',
+				'type'     => 'radio',
+				'desc_tip' => __( 'Extra Cover Fee - uses Australia Posts Extra Cover Fee formula of $0 - $100 free, $2.50 for each additional $100.<br> Based on the cart total.', 'wcpi' ),
+				'options'  => array(
+					'flat'    => __( 'Flat Fee', 'wcpi' ),
+					'auspost' => __( 'Australia Post - Extra Cover Fee', 'wcpi' ),
+				),
 			),
 			array(
 				'type'    => 'text',
 				'id'      => 'wcpi_fee',
 				'default' => '10',
-				'title'   => __( 'Fee Amount', 'wcpi' ),
+				'title'   => __( 'Flat Fee Amount', 'wcpi' ),
 				'desc'    => __( 'The cost of postage insurance.', 'wcpi' ),
 			),
 			array(
