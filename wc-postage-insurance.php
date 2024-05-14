@@ -224,8 +224,14 @@ function wcpi_add_fees( $cart ) {
 
 	if ( $insurance ) {
 		// Get fee amount from options.
-		$fee       = get_option( 'wcpi_enabled', 10 );
-		$fee       = get_option( 'wcpi_fee', 10 );
+		$type = get_option( 'wcpi_fee_type', 'flat' ); // flat || auspost.
+		$fee  = get_option( 'wcpi_fee', 10 ); // flat fee.
+		if ( 'auspost' === $type ) {
+			$cart_total = $cart->get_subtotal();
+			// Auspost formula is $0-$100 free, $2.5 for additional $100. upto $5000 (125 * 2.5).
+			$fee = min( floor( $cart_total / 100 ) * 2.5, 122.5 );
+		}
+
 		$taxable   = get_option( 'wcpi_taxable', false );
 		$tax_class = get_option( 'wcpi_tax_class', '' );
 
