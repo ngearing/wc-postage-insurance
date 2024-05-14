@@ -66,12 +66,23 @@ function wcpi_enabled() {
 }
 
 /**
- * Display postage insurance checkbox.
+ * Get the display option
+ *
+ * @return string 'checkout' or 'totals'
+ */
+function wcpi_display() {
+	$display = get_option( 'wcpi_display', 'checkout' );
+
+	return $display;
+}
+
+/**
+ * Display postage insurance checkbox in shipping totals.
  *
  * @return void
  */
 function wcpi_display_postage_insurance_field() {
-	if ( ! wcpi_enabled() ) {
+	if ( ! wcpi_enabled() || wcpi_display() !== 'totals' ) {
 		return;
 	}
 
@@ -103,6 +114,29 @@ function wcpi_display_postage_insurance_field() {
 add_action( 'woocommerce_cart_totals_after_shipping', 'wcpi_display_postage_insurance_field' );
 add_action( 'woocommerce_review_order_after_shipping', 'wcpi_display_postage_insurance_field' );
 
+/**
+ * Display Postage insurance field on checkout page.
+ *
+ * @return void
+ */
+function wcpi_display_postage_insurance_field_checkout() {
+	if ( ! wcpi_enabled() || wcpi_display() !== 'checkout' ) {
+		return;
+	}
+
+	wp_enqueue_script( 'wpi-postage-insurance' );
+
+	woocommerce_form_field(
+		'postage_insurance',
+		array(
+			'type'  => 'checkbox',
+			'class' => array( 'form-row-wide' ),
+			'label' => __( 'Add Postage Insurance?', 'wcpi' ),
+		),
+		WC()->session->get( 'postage_insurance' )
+	);
+}
+add_action( 'woocommerce_after_order_notes', 'wcpi_display_postage_insurance_field_checkout' );
 
 /**
  * Register plugin scripts.

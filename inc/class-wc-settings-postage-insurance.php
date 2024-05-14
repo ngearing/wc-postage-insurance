@@ -32,12 +32,12 @@ class WC_Settings_Postage_Insurance extends WC_Settings_Page {
 			array(
 				'title'    => __( 'Where to display?', 'wcpi' ),
 				'id'       => 'wcpi_display',
-				'default'  => 'no',
+				'default'  => 'checkout',
 				'type'     => 'radio',
 				'desc_tip' => false,
 				'options'  => array(
-					'no'  => __( 'Display in the checkout shipping options.', 'wcpi' ),
-					'yes' => __( 'Display in the shipping costs sections.', 'wcpi' ),
+					'checkout' => __( 'Display on the checkout page.', 'wcpi' ),
+					'totals'   => __( 'Display in the shipping total costs.', 'wcpi' ),
 				),
 			),
 			array(
