@@ -52,11 +52,29 @@ if ( is_admin() ) {
 }
 
 /**
+ * Check if plugin enabled option has been ticked.
+ *
+ * @return bool
+ */
+function wcpi_enabled() {
+	$enabled = get_option( 'wcpi_enabled', 'no' );
+	if ( 'yes' === $enabled ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Display postage insurance checkbox.
  *
  * @return void
  */
 function wcpi_display_postage_insurance_field() {
+	if ( ! wcpi_enabled() ) {
+		return;
+	}
+
 	wp_enqueue_script( 'wpi-postage-insurance' );
 
 	$insurance = WC()->session->get( 'postage_insurance' );
@@ -164,7 +182,7 @@ add_action( 'wp_ajax_nopriv_update_postage_insurance', 'wcpi_update_postage_insu
  * @return void
  */
 function wcpi_add_fees( $cart ) {
-	if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+	if ( is_admin() && ! defined( 'DOING_AJAX' ) || ! wcpi_enabled() ) {
 		return;
 	}
 
