@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WooCommerce Postage Insurance
  * Author: Nathan
- * Version: 0.0.2
+ * Version: 0.0.3
  * Requires Plugins: woocommerce
  *
  * @package wcpi
@@ -98,6 +98,31 @@ function wcpi_get_fee( $formatted = false ) {
 }
 
 /**
+ * Return markup for field
+ *
+ * @return string
+ */
+function wcpi_get_field() {
+
+	wp_enqueue_style( 'wpi-postage-insurance' );
+	wp_enqueue_script( 'wpi-postage-insurance' );
+
+	$field = woocommerce_form_field(
+		'postage_insurance',
+		array(
+			'return'      => true,
+			'type'        => 'checkbox',
+			'class'       => array( 'form-row-wide' ),
+			'label'       => sprintf( 'Add Postage Insurance? %s', wcpi_get_fee() ? '<strong>' . wcpi_get_fee( true ) . '</strong>' : '' ),
+			'description' => sprintf( 'Provides loss or damage cover up to the value of %s', wc_price( ( wcpi_get_fee() / 2.5 + 1 ) * 100 ) ),
+		),
+		WC()->session->get( 'postage_insurance' )
+	);
+
+	return $field;
+}
+
+/**
  * Display postage insurance checkbox in shipping totals.
  *
  * @return void
@@ -107,27 +132,11 @@ function wcpi_display_postage_insurance_field() {
 		return;
 	}
 
-	wp_enqueue_script( 'wpi-postage-insurance' );
-
-	$insurance = WC()->session->get( 'postage_insurance' );
-	$fee       = get_option( 'wcpi_fee', 10 );
-	$desc      = get_option( 'wcpi_desc', 'Covers loss or damage of items up to the value of $500' );
-
+	$field = wcpi_get_field();
 	?>
 	<tr class="cart-postage-insurance">
-		<th>
-			<label for="postage_insurance">Add Postage Insurance?
-				<?php
-				if ( $desc ) {
-					printf( ' <span class="description" style="display:block;font-size:70%%;font-weight:300;">%s</span>', esc_html( $desc ) );
-				}
-				?>
-			</label>
-		</th>
-		<td data-title="Postage Insurance">
-			<input type="checkbox" name="postage_insurance" id="postage_insurance" value="1" <?php checked( $insurance ); ?> />
-			<small><?php printf( '(+%s)', wp_kses( wc_price( $fee ), 'post' ) ); ?>
-			</small>
+		<td data-title="Postage Insurance" colspan="2">
+			<?php echo $field; ?>
 		</td>
 	</tr>
 	<?php
@@ -145,34 +154,7 @@ function wcpi_display_postage_insurance_field_checkout() {
 		return;
 	}
 
-	wp_enqueue_script( 'wpi-postage-insurance' );
-
-	woocommerce_form_field(
-		'postage_insurance',
-		array(
-			'type'        => 'checkbox',
-			'class'       => array( 'form-row-wide' ),
-			'label'       => sprintf( 'Add Postage Insurance? %s', wcpi_get_fee() ? '<strong>' . wcpi_get_fee( true ) . '</strong>' : '' ),
-			'description' => sprintf( 'Provides loss or damage cover up to the value of %s', wc_price( ( wcpi_get_fee() / 2.5 + 1 ) * 100 ) ),
-		),
-		WC()->session->get( 'postage_insurance' )
-	);
-	?>
-	<style>
-		#postage_insurance-description {
-			display: block !important;
-			background: transparent;
-			color: inherit;
-			font-style: italic;
-			font-size: 80%;
-			padding: 0;
-			margin: 0 0 0 23px;
-		}
-		#postage_insurance-description::before {
-			content: none;
-		}
-	</style>
-	<?php
+	echo wcpi_get_field();
 }
 add_action( 'woocommerce_after_order_notes', 'wcpi_display_postage_insurance_field_checkout' );
 
@@ -182,11 +164,20 @@ add_action( 'woocommerce_after_order_notes', 'wcpi_display_postage_insurance_fie
  * @return void
  */
 function wcpi_load_script() {
+	$plugin = get_plugin_data( __FILE__ );
+
+	wp_register_style(
+		'wpi-postage-insurance',
+		plugins_url( 'assets/css/postage-insurance.css', __FILE__ ),
+		array(),
+		$plugin['Version']
+	);
+
 	wp_register_script(
 		'wpi-postage-insurance',
 		plugins_url( 'assets/js/postage-insurance.js', __FILE__ ),
 		array( 'jquery' ),
-		'0.0.1',
+		$plugin['Version'],
 		true
 	);
 

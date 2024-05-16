@@ -1,0 +1,12 @@
+#postage_insurance-description {
+	display: block !important;
+	background: transparent;
+	color: inherit;
+	font-style: italic;
+	font-size: 80%;
+	padding: 0;
+	margin: 0 0 0 23px;
+}
+#postage_insurance-description::before {
+	content: none;
+}
