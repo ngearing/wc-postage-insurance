@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WooCommerce Postage Insurance
  * Author: Nathan
- * Version: 0.0.1
+ * Version: 0.0.2
  * Requires Plugins: woocommerce
  *
  * @package wcpi
@@ -77,6 +77,27 @@ function wcpi_display() {
 }
 
 /**
+ * Return the Free amount, formatted or unformatted.
+ *
+ * @param boolean $formatted Format output.
+ * @return string
+ */
+function wcpi_get_fee( $formatted = false ) {
+	$fee = 0;
+
+	$type = get_option( 'wcpi_fee_type', 'flat' ); // flat || auspost.
+	$fee  = get_option( 'wcpi_fee', 10 ); // flat fee.
+	$cart = WC()->cart;
+
+	if ( 'auspost' === $type ) {
+		// Auspost formula is $0-$100 free, $2.5 for additional $100. upto $5000 (125 * 2.5).
+		$fee = min( floor( $cart->get_subtotal() / 100 ) * 2.5, 122.5 );
+	}
+
+	return $formatted ? wc_price( $fee ) : $fee;
+}
+
+/**
  * Display postage insurance checkbox in shipping totals.
  *
  * @return void
@@ -129,12 +150,29 @@ function wcpi_display_postage_insurance_field_checkout() {
 	woocommerce_form_field(
 		'postage_insurance',
 		array(
-			'type'  => 'checkbox',
-			'class' => array( 'form-row-wide' ),
-			'label' => __( 'Add Postage Insurance?', 'wcpi' ),
+			'type'        => 'checkbox',
+			'class'       => array( 'form-row-wide' ),
+			'label'       => sprintf( 'Add Postage Insurance? %s', wcpi_get_fee() ? '<strong>' . wcpi_get_fee( true ) . '</strong>' : '' ),
+			'description' => sprintf( 'Provides loss or damage cover up to the value of %s', wc_price( ( wcpi_get_fee() / 2.5 + 1 ) * 100 ) ),
 		),
 		WC()->session->get( 'postage_insurance' )
 	);
+	?>
+	<style>
+		#postage_insurance-description {
+			display: block !important;
+			background: transparent;
+			color: inherit;
+			font-style: italic;
+			font-size: 80%;
+			padding: 0;
+			margin: 0 0 0 23px;
+		}
+		#postage_insurance-description::before {
+			content: none;
+		}
+	</style>
+	<?php
 }
 add_action( 'woocommerce_after_order_notes', 'wcpi_display_postage_insurance_field_checkout' );
 
@@ -223,15 +261,7 @@ function wcpi_add_fees( $cart ) {
 	$insurance = WC()->session->get( 'postage_insurance' );
 
 	if ( $insurance ) {
-		// Get fee amount from options.
-		$type = get_option( 'wcpi_fee_type', 'flat' ); // flat || auspost.
-		$fee  = get_option( 'wcpi_fee', 10 ); // flat fee.
-		if ( 'auspost' === $type ) {
-			$cart_total = $cart->get_subtotal();
-			// Auspost formula is $0-$100 free, $2.5 for additional $100. upto $5000 (125 * 2.5).
-			$fee = min( floor( $cart_total / 100 ) * 2.5, 122.5 );
-		}
-
+		$fee       = wcpi_get_fee();
 		$taxable   = get_option( 'wcpi_taxable', false );
 		$tax_class = get_option( 'wcpi_tax_class', '' );
 
